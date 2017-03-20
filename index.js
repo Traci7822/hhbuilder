@@ -74,6 +74,7 @@ function submitFamily(event) {
     makeChangesButton(event);
   }
   document.getElementsByTagName('button')[0].className += ' submitted';
+
   //JSON element ready to submit to server
   var familyJSON = JSON.stringify(family);
 }
@@ -141,7 +142,6 @@ function appendAttributes(person, memberKeys, familyMember) {
   }
 }
 
-// prevent form reset on invalid entry w/ editing
 function validateFields(event, age, rel) {
   event.preventDefault();
   if (!parseFloat(age) || age == "" || age < 1) {
