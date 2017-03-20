@@ -9,23 +9,27 @@ window.onload = function() {
 }
 
 function addButton() {
-  document.getElementsByTagName('button')[0].addEventListener("click", function() {
+  document.getElementsByTagName('button')[0].addEventListener("click", function(event) {
     var form = document.querySelector('form');
-    if (validateFields(form[0].value, form[1].value)) {
-      addFamilyMember(form);
-      counter++;
-    }
-    document.querySelector('form').reset();
+    updateFamilySection(event, form);
   });
 }
 
 function submitButton() {
-  document.getElementsByTagName('button')[1].addEventListener("click", function() {
-    submitFamily();
+  document.getElementsByTagName('button')[1].addEventListener("click", function(event) {
+    submitFamily(event);
   });
 }
 
-function addFamilyMember(form) {
+function updateFamilySection(event, form) {
+  if (validateFields(event, form[0].value, form[1].value)) {
+    addFamilyMember(event, form);
+    counter++;
+  }
+  document.querySelector('form').reset();
+}
+
+function addFamilyMember(event, form) {
   event.preventDefault();
   if (event.target.className.includes('submitted')) {
     counter = 0;
@@ -38,7 +42,7 @@ function addFamilyMember(form) {
   }
   var newFamilyMember = createFamilyMember(form);
   family.push(newFamilyMember);
-  appendMemberToFamily(newFamilyMember);
+  appendMemberToFamilySection(newFamilyMember);
 }
 
 function createFamilyMember(form) {
@@ -62,17 +66,18 @@ function createList(list, id) {
   return ul;
 }
 
-function submitFamily() {
+function submitFamily(event) {
   event.preventDefault();
+  debugger;
   if (event.target.type == "submit" && (document.getElementById('family_members').children[0].innerHTML != "Make Changes")) {
-    makeChangesButton();
+    makeChangesButton(event);
   }
   document.getElementsByTagName('button')[0].className += ' submitted';
   //JSON element ready to submit to server
   var familyJSON = JSON.stringify(family);
 }
 
-function makeChangesButton() {
+function makeChangesButton(event) {
   event.preventDefault();
   var list = document.getElementsByClassName('debug')[0].children[0];
   var makeChanges = document.createElement('button');
@@ -93,7 +98,7 @@ function showChangeButtons(option) {
   }
 }
 
-function appendMemberToFamily(familyMember) {
+function appendMemberToFamilySection(familyMember) {
   var person = createList(document.getElementById('family_members'), counter);
   var memberKeys = Object.keys(familyMember);
   personHeader(person);
@@ -131,8 +136,10 @@ function appendAttributes(person, memberKeys, familyMember) {
   }
 }
 
-function validateFields(age, rel) {
-  if (!isNaN(age.to_i) || age == "" || age < 1) {
+// prevent form reset on invalid entry w/ editing
+function validateFields(event, age, rel) {
+  event.preventDefault();
+  if (!parseFloat(age) || age == "" || age < 1) {
     alert('Age is required');
   } else if (rel == "") {
     alert('Relationship is required');
@@ -151,43 +158,15 @@ function createButton(purpose, id) {
       removeFamilyMember(id);
     } else if (purpose == 'edit') {
       editFamilyMember(id);
-    } else if (purpose == 'save') {
-      var member = document.getElementById(id).children;
-      var age = member[5].getElementsByTagName('span')[0].innerHTML;
-      var rel = member[6].getElementsByTagName('span')[0].innerHTML;
-      if (!validateFields(age, rel)) {
-        editFamilyMember(id);
-      }
-      document.getElementsByClassName('remove_button')[id].type = 'hidden';
-      document.getElementsByClassName('edit_button')[id].type = 'hidden';
-      document.getElementsByClassName('save_button')[id].type = 'hidden';
-      resetDefaultStyle(id);
-      updateFamilyMember(id);
     }
-  }
+  };
   return element;
-}
-
-function resetDefaultStyle(id) {
-  var attributes = document.getElementById(id).getElementsByClassName('attribute');
-  for (var i = 0; i < attributes.length; i++) {
-    attributes[i].style = 'default'
-  }
-}
-
-function updateFamilyMember(id) {
-  var element = document.getElementById(id).children;
-  family[id]["age"] = element[5].children[0].innerHTML
-  family[id]["rel"] = element[6].children[0].innerHTML
-  family[id]["smoker"] = element[7].children[0].innerHTML;
-  submitFamily();
 }
 
 function removeFamilyMember(id) {
   document.getElementById(id).remove();
   updateList();
 }
-
 
 function updateList() {
   var listItems = document.getElementById('family_members').children;
@@ -203,14 +182,22 @@ function updateList() {
 }
 
 function editFamilyMember(id) {
-  var member = document.getElementById(id);
-  var editableField = member.getElementsByClassName('attribute');
-  for (var i in editableField) {
-    editableField[i].style.boxShadow = "2px 2px 2px 0 lightgray inset";
-    editableField[i].style.marginTop = "5px";
-    editableField[i].style.padding = "2px 3px";
-    editableField[i].contentEditable = true;
-    document.getElementsByClassName('save_button')[id].type = 'button';
-    document.getElementsByClassName('save_button')[id].value = 'Save Changes';
+  document.getElementsByClassName('edit_button')[id].type = 'hidden';
+  var member = document.getElementById(id).getElementsByTagName('li');
+  for (var i = 0; i < member.length; i++) {
+    member[i].style.display = 'none';
   }
+  var newForm = document.getElementsByClassName('builder')[0].children[1].cloneNode(true);
+  newForm.children[4].remove()
+  newForm.setAttribute('class', 'editedMember');
+  newForm.setAttribute('id', id);
+  document.getElementById(id).appendChild(newForm);
+  document.getElementsByTagName('button')[3].addEventListener('click', function(event){
+    event.preventDefault();
+    var form = document.getElementsByClassName('editedMember')[0];
+    document.getElementById('family_members').children[0].innerHTML = null;
+    removeFamilyMember(form.id);
+    updateFamilySection(event, form);
+    document.getElementsByClassName('editedMember')[0].style.display = 'none';
+  });
 }
