@@ -68,7 +68,6 @@ function createList(list, id) {
 
 function submitFamily(event) {
   event.preventDefault();
-  debugger;
   if (event.target.type == "submit" && (document.getElementById('family_members').children[0].innerHTML != "Make Changes")) {
     makeChangesButton(event);
   }
