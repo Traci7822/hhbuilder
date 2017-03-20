@@ -66,6 +66,8 @@ function createList(list, id) {
   return ul;
 }
 
+// show buttons when added after submission
+
 function submitFamily(event) {
   event.preventDefault();
   if (event.target.type == "submit" && (document.getElementById('family_members').children[0].innerHTML != "Make Changes")) {
@@ -121,6 +123,10 @@ function appendButtons(person) {
   var removeButton = createButton('remove', person.id);
   var editButton = createButton('edit', person.id);
   var saveButton = createButton('save', person.id);
+  if (event.target.className.includes('submitted')) {
+    removeButton.type = 'button';
+    editButton.type = 'button';
+  }
   person.appendChild(removeButton);
   person.appendChild(editButton);
   person.appendChild(saveButton);
@@ -164,6 +170,7 @@ function createButton(purpose, id) {
 
 function removeFamilyMember(id) {
   document.getElementById(id).remove();
+  counter--;
   updateList();
 }
 
@@ -182,15 +189,14 @@ function updateList() {
 
 function editFamilyMember(id) {
   document.getElementsByClassName('edit_button')[id].type = 'hidden';
-  var member = document.getElementById(id).getElementsByTagName('li');
-  for (var i = 0; i < member.length; i++) {
-    member[i].style.display = 'none';
-  }
+  var member = document.getElementById(id);
+  hideAttributes(member.getElementsByTagName('li'));
+
   var newForm = document.getElementsByClassName('builder')[0].children[1].cloneNode(true);
   newForm.children[4].remove()
   newForm.setAttribute('class', 'editedMember');
   newForm.setAttribute('id', id);
-  document.getElementById(id).appendChild(newForm);
+  member.appendChild(newForm);
   document.getElementsByTagName('button')[3].addEventListener('click', function(event){
     event.preventDefault();
     var form = document.getElementsByClassName('editedMember')[0];
@@ -199,4 +205,10 @@ function editFamilyMember(id) {
     updateFamilySection(event, form);
     document.getElementsByClassName('editedMember')[0].style.display = 'none';
   });
+}
+
+function hideAttributes(attributes) {
+  for (var i = 0; i < attributes.length; i++) {
+    attributes[i].style.display = 'none';
+  }
 }
